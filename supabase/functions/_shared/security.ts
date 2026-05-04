@@ -4,13 +4,22 @@ const ALLOWED_ORIGINS = [
   "https://privacy-shield-automata.lovable.app",
   "https://adequafacil.com.br",
   "https://www.adequafacil.com.br",
-  "https://id-preview--f2a2bccd-267d-400d-904c-1056600c2dfb.lovable.app",
+  "https://zip-deploy-zone.lovable.app",
+];
+
+const ALLOWED_ORIGIN_PATTERNS = [
+  /^https:\/\/[a-z0-9-]+\.lovable\.app$/i,
+  /^https:\/\/[a-z0-9-]+\.lovableproject\.com$/i,
+  /^http:\/\/localhost(:\d+)?$/i,
 ];
 
 export function getCorsHeaders(req: Request): Record<string, string> {
   const origin = req.headers.get("origin") || "";
-  const allowedOrigin = ALLOWED_ORIGINS.includes(origin) ? origin : ALLOWED_ORIGINS[0];
-  
+  const isAllowed =
+    ALLOWED_ORIGINS.includes(origin) ||
+    ALLOWED_ORIGIN_PATTERNS.some((re) => re.test(origin));
+  const allowedOrigin = isAllowed && origin ? origin : "*";
+
   return {
     "Access-Control-Allow-Origin": allowedOrigin,
     "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type, x-supabase-client-platform, x-supabase-client-platform-version, x-supabase-client-runtime, x-supabase-client-runtime-version",
