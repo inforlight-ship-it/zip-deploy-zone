@@ -94,7 +94,7 @@ export default function Incidentes() {
     const update: Record<string, unknown> = { status: newStatus };
     if (newStatus === "contido") update.contained_at = new Date().toISOString();
     if (newStatus === "encerrado") update.resolved_at = new Date().toISOString();
-    await supabase.from("incidents").update(update).eq("id", selected.id);
+    await supabase.from("incidents").update(update as any).eq("id", selected.id);
     await supabase.from("incident_timeline").insert({ incident_id: selected.id, user_id: user.id, action: `Status atualizado para: ${statusLabels[newStatus]}` });
     toast({ title: `Status → ${statusLabels[newStatus]}` });
     setSelected({ ...selected, status: newStatus, ...(newStatus === "contido" ? { contained_at: new Date().toISOString() } : {}), ...(newStatus === "encerrado" ? { resolved_at: new Date().toISOString() } : {}) });
@@ -104,7 +104,7 @@ export default function Incidentes() {
 
   const updateIncidentField = async (field: string, value: unknown) => {
     if (!selected) return;
-    await supabase.from("incidents").update({ [field]: value }).eq("id", selected.id);
+    await supabase.from("incidents").update({ [field]: value } as any).eq("id", selected.id);
     setSelected({ ...selected, [field]: value });
   };
 
