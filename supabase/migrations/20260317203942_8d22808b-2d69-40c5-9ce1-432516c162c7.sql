@@ -1,0 +1,1 @@
+ALTER TABLE public.roles ADD CONSTRAINT roles_name_unique UNIQUE (name);
