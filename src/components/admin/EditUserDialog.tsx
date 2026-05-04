@@ -65,14 +65,27 @@ const EditUserDialog = ({ open, onOpenChange, user }: Props) => {
     if (!addTenantId || !addRoleId) { toast({ title: "Selecione tenant e papel.", variant: "destructive" }); return; }
     setIsLoading(true);
     try {
-      const { data: ut, error: utErr } = await supabase.from("user_tenants").insert({ user_id: user.user_id, tenant_id: addTenantId }).select("id").single();
+      // upsert membership (handles unique violation gracefully)
+      const { data: ut, error: utErr } = await supabase
+        .from("user_tenants")
+        .upsert({ user_id: user.user_id, tenant_id: addTenantId, is_active: true }, { onConflict: "user_id,tenant_id" })
+        .select("id")
+        .single();
       if (utErr) throw utErr;
-      const { error: roleErr } = await supabase.from("user_tenant_roles").insert({ user_tenant_id: ut.id, role_id: addRoleId });
-      if (roleErr) throw roleErr;
+      const { error: roleErr } = await supabase
+        .from("user_tenant_roles")
+        .insert({ user_tenant_id: ut.id, role_id: addRoleId });
+      if (roleErr && !String(roleErr.message).toLowerCase().includes("duplicate")) throw roleErr;
+      // ensure profile.tenant_id is set (used by RLS on many tables)
+      if (!user.tenant_id) {
+        await supabase.from("profiles").update({ tenant_id: addTenantId }).eq("user_id", user.user_id);
+      }
       toast({ title: "Tenant vinculado ao usuário!" });
       setAddTenantId(""); setAddRoleId("");
       queryClient.invalidateQueries({ queryKey: ["admin-users"] });
-    } catch (err: any) { toast({ title: "Erro ao vincular tenant", description: err.message, variant: "destructive" }); }
+    } catch (err: any) {
+      toast({ title: "Erro ao vincular tenant", description: err.message || "Falha desconhecida", variant: "destructive" });
+    }
     finally { setIsLoading(false); }
   };
 
