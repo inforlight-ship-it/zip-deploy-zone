@@ -145,7 +145,7 @@ export default function Fornecedores() {
 
   const updateSupplierField = async (field: string, value: unknown) => {
     if (!selected) return;
-    const { error } = await supabase.from("suppliers").update({ [field]: value }).eq("id", selected.id);
+    const { error } = await supabase.from("suppliers").update({ [field]: value } as any).eq("id", selected.id);
     if (error) {
       toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
       return;
@@ -163,7 +163,7 @@ export default function Fornecedores() {
       supplier_id: selected.id, user_id: user.id, question: t.question, category: t.category, score: 0,
     }));
     await supabase.from("supplier_assessments").insert(rows);
-    await supabase.from("suppliers").update({ status: "em_revisao" as any, last_assessment_at: new Date().toISOString() }).eq("id", selected.id);
+    await supabase.from("suppliers").update({ status: "em_revisao" as any, last_assessment_at: new Date().toISOString() } as any).eq("id", selected.id);
     toast({ title: "Avaliação iniciada com " + ASSESSMENT_TEMPLATE.length + " perguntas" });
     fetchAssessments(selected.id);
     setSelected({ ...selected, status: "em_revisao" });
@@ -171,12 +171,12 @@ export default function Fornecedores() {
   };
 
   const updateAssessmentScore = async (assessmentId: string, score: number) => {
-    await supabase.from("supplier_assessments").update({ score }).eq("id", assessmentId);
+    await supabase.from("supplier_assessments").update({ score } as any).eq("id", assessmentId);
     setAssessments(prev => prev.map(a => a.id === assessmentId ? { ...a, score } : a));
   };
 
   const updateAssessmentAnswer = async (assessmentId: string, answer: string) => {
-    await supabase.from("supplier_assessments").update({ answer }).eq("id", assessmentId);
+    await supabase.from("supplier_assessments").update({ answer } as any).eq("id", assessmentId);
   };
 
   const completeAssessment = async () => {
@@ -188,7 +188,7 @@ export default function Fornecedores() {
     const status = pct >= 60 ? "aprovado" : "reprovado";
     await supabase.from("suppliers").update({
       overall_score: pct, risk_level: risk as any, status: status as any,
-    }).eq("id", selected.id);
+    } as any).eq("id", selected.id);
     setSelected({ ...selected, overall_score: pct, risk_level: risk, status });
     toast({ title: `Avaliação concluída — Score: ${pct}% — ${status === "aprovado" ? "Aprovado" : "Reprovado"}` });
     fetchSuppliers();

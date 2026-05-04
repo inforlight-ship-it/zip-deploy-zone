@@ -121,18 +121,18 @@ export default function Auditoria() {
   };
 
   const toggleControl = async (controlId: string, current: boolean) => {
-    await supabase.from("audit_controls").update({ is_compliant: !current }).eq("id", controlId);
+    await supabase.from("audit_controls").update({ is_compliant: !current } as any).eq("id", controlId);
     if (selectedAudit) {
       const newCompliant = controls.filter(c => c.id === controlId ? !current : c.is_compliant).length;
       const score = Math.round((newCompliant / Math.max(controls.length, 1)) * 100);
-      await supabase.from("security_audits").update({ compliant_controls: newCompliant, overall_score: score }).eq("id", selectedAudit.id);
+      await supabase.from("security_audits").update({ compliant_controls: newCompliant, overall_score: score } as any).eq("id", selectedAudit.id);
       setSelectedAudit({ ...selectedAudit, compliant_controls: newCompliant, overall_score: score });
     }
     fetchControls(selectedAudit!.id);
   };
 
   const updateControlField = async (controlId: string, field: string, value: string) => {
-    await supabase.from("audit_controls").update({ [field]: value }).eq("id", controlId);
+    await supabase.from("audit_controls").update({ [field]: value } as any).eq("id", controlId);
   };
 
   const saveAudit = async () => {
@@ -141,7 +141,7 @@ export default function Auditoria() {
     const score = Math.round((compliant / Math.max(controls.length, 1)) * 100);
     await supabase.from("security_audits").update({
       compliant_controls: compliant, overall_score: score, total_controls: controls.length,
-    }).eq("id", selectedAudit.id);
+    } as any).eq("id", selectedAudit.id);
     const updated = { ...selectedAudit, compliant_controls: compliant, overall_score: score, total_controls: controls.length };
     setSelectedAudit(updated);
     toast({ title: "Auditoria salva", description: `Score atualizado: ${score}%` });
@@ -155,7 +155,7 @@ export default function Auditoria() {
     await supabase.from("security_audits").update({
       status: "concluida" as any, completed_at: new Date().toISOString(),
       compliant_controls: compliant, overall_score: score, total_controls: controls.length,
-    }).eq("id", selectedAudit.id);
+    } as any).eq("id", selectedAudit.id);
     toast({ title: "Auditoria concluída", description: `Score final: ${score}%` });
     fetchAudits();
     setSelectedAudit({ ...selectedAudit, status: "concluida", compliant_controls: compliant, overall_score: score });
@@ -165,7 +165,7 @@ export default function Auditoria() {
     if (!selectedAudit) return;
     await supabase.from("security_audits").update({
       status: "em_andamento" as any, completed_at: null,
-    }).eq("id", selectedAudit.id);
+    } as any).eq("id", selectedAudit.id);
     toast({ title: "Auditoria reaberta" });
     fetchAudits();
     setSelectedAudit({ ...selectedAudit, status: "em_andamento", completed_at: null });

@@ -105,7 +105,7 @@ export default function Solicitacoes() {
 
     const { error } = await supabase
       .from("data_subject_requests")
-      .update(updateData)
+      .update(updateData as any)
       .eq("id", id);
     if (error) {
       toast({ title: "Erro", description: error.message, variant: "destructive" });

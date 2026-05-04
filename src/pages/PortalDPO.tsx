@@ -225,7 +225,7 @@ export default function PortalDPO() {
   const updateTaskStatus = async (id: string, status: string) => {
     const update: Record<string, unknown> = { status };
     if (status === "concluida") update.completed_at = new Date().toISOString();
-    const { error } = await supabase.from("dpo_tasks").update(update).eq("id", id);
+    const { error } = await supabase.from("dpo_tasks").update(update as any).eq("id", id);
     if (error) { toast({ title: "Erro", description: error.message, variant: "destructive" }); return; }
     await logActivity(`Tarefa → ${taskStatusLabels[status]}`, "tarefa", id);
     toast({ title: "Tarefa atualizada" });
