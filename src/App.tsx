@@ -26,6 +26,7 @@ import Incidentes from "@/pages/Incidentes";
 import Fornecedores from "@/pages/Fornecedores";
 import RelatoriosANPD from "@/pages/RelatoriosANPD";
 import AvaliacaoExterna from "@/pages/AvaliacaoExterna";
+import Tasks from "@/pages/Tasks";
 import TenantSelectionPage from "@/pages/auth/TenantSelectionPage";
 import ChangePasswordPage from "@/pages/auth/ChangePasswordPage";
 import ForgotPasswordPage from "@/pages/auth/ForgotPasswordPage";
@@ -90,6 +91,7 @@ const App = () => (
               <Route path="/incidentes" element={<Incidentes />} />
               <Route path="/fornecedores" element={<Fornecedores />} />
               <Route path="/relatorios-anpd" element={<RelatoriosANPD />} />
+              <Route path="/tarefas" element={<Tasks />} />
             </Route>
 
             <Route path="*" element={<NotFound />} />
