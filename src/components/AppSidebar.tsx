@@ -1,7 +1,7 @@
 import {
   LayoutDashboard, ClipboardCheck, Database, FileText, Cookie,
   UserCog, ShieldCheck, AlertTriangle, Building2, LogOut, Shield, FileBarChart,
-  ChevronsUpDown, Check
+  ChevronsUpDown, Check, ListTodo
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -32,6 +32,7 @@ const mainItems = [
   { title: "Maturidade LGPD", url: "/diagnostico", icon: ClipboardCheck },
   { title: "Mapeamento de Dados", url: "/mapeamento", icon: Database },
   { title: "Documentos", url: "/documentos", icon: FileText },
+  { title: "Tarefas", url: "/tarefas", icon: ListTodo },
 ];
 
 const complianceItems = [
