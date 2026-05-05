@@ -123,11 +123,11 @@ export default function Tasks() {
     if (!currentTenant) return;
     const { data, error } = await supabase
       .from("profiles")
-      .select("id, full_name, email")
+      .select("user_id, full_name, email")
       .eq("tenant_id", currentTenant.id);
 
     if (!error && data) {
-      setTenantUsers(data as TenantUser[]);
+      setTenantUsers(data.map(u => ({ id: u.user_id, full_name: u.full_name, email: u.email })) as TenantUser[]);
     }
   };
 
