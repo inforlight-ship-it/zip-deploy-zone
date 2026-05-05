@@ -106,7 +106,7 @@ export default function Tasks() {
       .from("tasks")
       .select(`
         *,
-        profiles:assigned_to (full_name)
+        profiles!tasks_assigned_to_user_profile_fkey (full_name)
       `)
       .eq("tenant_id", currentTenant.id)
       .order("created_at", { ascending: false });
