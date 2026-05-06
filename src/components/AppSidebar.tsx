@@ -49,7 +49,7 @@ export function AppSidebar() {
   const collapsed = state === "collapsed";
   const location = useLocation();
   const navigate = useNavigate();
-  const { user, signOut, currentTenant, availableTenants, switchTenant, isSuperadmin } = useAuth();
+  const { user, signOut, currentTenant, availableTenants, switchTenant, isSuperadmin, impersonatorId, stopImpersonation } = useAuth();
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -165,7 +165,22 @@ export function AppSidebar() {
         </SidebarGroup>
       </SidebarContent>
 
-      <SidebarFooter className="border-t border-sidebar-border/50 p-3">
+      <SidebarFooter className="border-t border-sidebar-border/50 p-3 space-y-2">
+        {impersonatorId && (
+          <div className="bg-primary/10 border border-primary/20 rounded-lg p-2 mb-2">
+            <p className="text-[10px] font-bold text-primary uppercase text-center mb-1">Modo Suporte</p>
+            <Button 
+              size="sm" 
+              className="w-full h-8 text-[10px]" 
+              onClick={async () => {
+                await stopImpersonation();
+                navigate("/admin/tenants");
+              }}
+            >
+              Sair do Suporte
+            </Button>
+          </div>
+        )}
         {user && !collapsed && (
           <div className="mb-2 truncate text-xs text-sidebar-foreground/40">
             {user.email}

@@ -14,6 +14,7 @@ const actionLabels: Record<string, string> = {
   "user.login.success": "Login realizado", "user.login.failed": "Login falhou", "user.invited": "Usuário convidado",
   "user.provisioned": "Usuário provisionado", "user.password.changed": "Senha alterada", "tenant.updated": "Tenant atualizado",
   "settings.updated": "Configurações atualizadas", "module.enabled": "Módulo ativado", "module.disabled": "Módulo desativado",
+  "support.impersonation.started": "Impersonação iniciada", "support.impersonation.ended": "Impersonação encerrada",
 };
 
 const AuditLogPage = () => {

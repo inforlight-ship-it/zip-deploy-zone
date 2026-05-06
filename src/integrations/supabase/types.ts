@@ -1060,6 +1060,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
+          deleted_at: string | null
           email: string | null
           full_name: string | null
           id: string
@@ -1077,6 +1078,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          deleted_at?: string | null
           email?: string | null
           full_name?: string | null
           id?: string
@@ -1094,6 +1096,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           created_at?: string
+          deleted_at?: string | null
           email?: string | null
           full_name?: string | null
           id?: string
@@ -1439,6 +1442,44 @@ export type Database = {
           },
         ]
       }
+      support_impersonation_logs: {
+        Row: {
+          admin_id: string
+          ended_at: string | null
+          id: string
+          reason: string
+          started_at: string | null
+          target_user_id: string
+          tenant_id: string
+        }
+        Insert: {
+          admin_id: string
+          ended_at?: string | null
+          id?: string
+          reason: string
+          started_at?: string | null
+          target_user_id: string
+          tenant_id: string
+        }
+        Update: {
+          admin_id?: string
+          ended_at?: string | null
+          id?: string
+          reason?: string
+          started_at?: string | null
+          target_user_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "support_impersonation_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       task_comments: {
         Row: {
           content: string
@@ -1486,6 +1527,7 @@ export type Database = {
           completed_at: string | null
           created_at: string
           created_by: string | null
+          deleted_at: string | null
           description: string | null
           due_date: string | null
           id: string
@@ -1503,6 +1545,7 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           created_by?: string | null
+          deleted_at?: string | null
           description?: string | null
           due_date?: string | null
           id?: string
@@ -1520,6 +1563,7 @@ export type Database = {
           completed_at?: string | null
           created_at?: string
           created_by?: string | null
+          deleted_at?: string | null
           description?: string | null
           due_date?: string | null
           id?: string
@@ -1641,6 +1685,7 @@ export type Database = {
         Row: {
           cnpj: string | null
           created_at: string
+          deleted_at: string | null
           id: string
           is_active: boolean
           is_trial: boolean
@@ -1656,6 +1701,7 @@ export type Database = {
         Insert: {
           cnpj?: string | null
           created_at?: string
+          deleted_at?: string | null
           id?: string
           is_active?: boolean
           is_trial?: boolean
@@ -1671,6 +1717,7 @@ export type Database = {
         Update: {
           cnpj?: string | null
           created_at?: string
+          deleted_at?: string | null
           id?: string
           is_active?: boolean
           is_trial?: boolean
@@ -1888,7 +1935,24 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      tenant_task_analytics: {
+        Row: {
+          avg_completion_time: string | null
+          completed_tasks: number | null
+          pending_tasks: number | null
+          tenant_id: string | null
+          total_tasks: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tasks_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       get_user_tenant_id: { Args: { _user_id: string }; Returns: string }

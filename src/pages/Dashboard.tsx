@@ -9,6 +9,7 @@ import MaturityChart from "@/components/dashboard/MaturityChart";
 import RecentDSRs from "@/components/dashboard/RecentDSRs";
 import QuickActions from "@/components/dashboard/QuickActions";
 import { TenantOnboarding } from "@/components/dashboard/TenantOnboarding";
+import { TenantAnalytics } from "@/components/dashboard/TenantAnalytics";
 
 interface DiagnosticRow {
   id: string;
@@ -105,6 +106,9 @@ export default function Dashboard() {
           <p className="text-xs text-muted-foreground">Visão consolidada da conformidade LGPD</p>
         </div>
       </motion.div>
+
+      {/* Analytics Summary */}
+      <TenantAnalytics />
 
       {/* KPIs */}
       <DashboardKPIs
