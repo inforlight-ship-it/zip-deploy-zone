@@ -8,6 +8,7 @@ import ComplianceRoadmap from "@/components/dashboard/ComplianceRoadmap";
 import MaturityChart from "@/components/dashboard/MaturityChart";
 import RecentDSRs from "@/components/dashboard/RecentDSRs";
 import QuickActions from "@/components/dashboard/QuickActions";
+import { TenantOnboarding } from "@/components/dashboard/TenantOnboarding";
 
 interface DiagnosticRow {
   id: string;
@@ -91,6 +92,7 @@ export default function Dashboard() {
 
   return (
     <div className="p-4 sm:p-6 max-w-7xl mx-auto space-y-6">
+      <TenantOnboarding />
       {/* Header */}
       <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }} className="flex items-center gap-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 border border-primary/20">
