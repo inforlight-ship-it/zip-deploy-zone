@@ -71,7 +71,7 @@ export function TenantAnalytics() {
         </CardHeader>
         <CardContent>
           <div className="text-2xl font-bold">
-            {stats?.avg_completion_time ? `${Math.round(stats.avg_completion_time / 3600)}h` : "—"}
+            {stats?.avg_completion_time ? `${Math.round(Number(stats.avg_completion_time) / 3600)}h` : "—"}
           </div>
           <p className="text-xs text-muted-foreground">Média de encerramento</p>
         </CardContent>
