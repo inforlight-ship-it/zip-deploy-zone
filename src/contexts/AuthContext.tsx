@@ -221,6 +221,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
             isMfaRequired: false,
             availableTenants: [],
             isLoading: false,
+            impersonatorId: null,
           });
         }
       }
