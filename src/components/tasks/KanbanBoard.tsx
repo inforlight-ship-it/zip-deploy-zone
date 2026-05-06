@@ -41,7 +41,9 @@ export function KanbanBoard({ tasks, onTaskMove, onEdit, onCollab }) {
     const overId = over.id;
 
     // Check if dropped on a column or another task
-    const newStatus = columns.find(c => c.id === overId) ? overId : tasks.find(t => t.id === overId)?.status;
+    const overColumn = columns.find(c => c.id === overId);
+    const overTask = tasks.find(t => t.id === overId);
+    const newStatus = overColumn ? overId : overTask?.status;
     
     if (newStatus && active.data.current.status !== newStatus) {
       onTaskMove(taskId, newStatus);
