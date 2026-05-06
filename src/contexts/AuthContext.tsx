@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import type { User, Session, AuthenticatorAssuranceLevels } from "@supabase/supabase-js";
 import { useSessionTimeout } from "@/hooks/useSessionTimeout";
 import { useSessionRotation } from "@/hooks/useSessionRotation";
+import { toast } from "sonner";
 
 interface TenantContext {
   id: string;
@@ -33,6 +34,7 @@ interface AuthState {
   isMfaRequired: boolean;
   availableTenants: TenantContext[];
   isLoading: boolean;
+  impersonatorId: string | null;
 }
 
 interface AuthContextType extends AuthState {
@@ -41,6 +43,8 @@ interface AuthContextType extends AuthState {
   verifyMfa: (code: string) => Promise<boolean>;
   selectTenant: (tenantId: string) => Promise<void>;
   switchTenant: (tenantId: string) => Promise<void>;
+  impersonateUser: (userId: string, tenantId: string, reason: string) => Promise<void>;
+  stopImpersonation: () => Promise<void>;
   logout: () => Promise<void>;
   signOut: () => Promise<void>;
   refreshTenants: () => Promise<void>;
