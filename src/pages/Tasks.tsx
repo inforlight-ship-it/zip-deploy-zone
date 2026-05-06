@@ -1,11 +1,11 @@
 import { useEffect, useState, useMemo } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
-  ListTodo, Plus, Trash2, Calendar, AlertTriangle, 
+  ListTodo, Plus, Trash2, Calendar as CalendarIcon, AlertTriangle, 
   CheckCircle2, Clock, Filter, User, Search, 
   MoreVertical, Edit2, CheckCircle, Brain, 
   Zap, Settings, Activity, MessageSquare, 
-  History, Send, AtSign
+  History, Send, AtSign, LayoutGrid, CalendarDays
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,6 +13,24 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  DndContext, 
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragOverlay,
+} from "@dnd-kit/core";
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { 
   Dialog, DialogContent, DialogHeader, DialogTitle, 
   DialogTrigger, DialogFooter 
