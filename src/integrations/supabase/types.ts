@@ -1391,6 +1391,8 @@ export type Database = {
       }
       tasks: {
         Row: {
+          ai_priority_score: number | null
+          ai_recommendation: string | null
           assigned_to: string | null
           category: string | null
           completed_at: string | null
@@ -1406,6 +1408,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          ai_priority_score?: number | null
+          ai_recommendation?: string | null
           assigned_to?: string | null
           category?: string | null
           completed_at?: string | null
@@ -1421,6 +1425,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          ai_priority_score?: number | null
+          ai_recommendation?: string | null
           assigned_to?: string | null
           category?: string | null
           completed_at?: string | null
@@ -1687,6 +1693,104 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "user_tenants_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workflow_logs: {
+        Row: {
+          created_at: string | null
+          error_message: string | null
+          execution_time_ms: number | null
+          id: string
+          rule_id: string | null
+          status: string
+          target_id: string
+          tenant_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          error_message?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          rule_id?: string | null
+          status: string
+          target_id: string
+          tenant_id: string
+        }
+        Update: {
+          created_at?: string | null
+          error_message?: string | null
+          execution_time_ms?: number | null
+          id?: string
+          rule_id?: string | null
+          status?: string
+          target_id?: string
+          tenant_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_logs_rule_id_fkey"
+            columns: ["rule_id"]
+            isOneToOne: false
+            referencedRelation: "workflow_rules"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "workflow_logs_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      workflow_rules: {
+        Row: {
+          action_config: Json | null
+          action_type: string
+          condition_config: Json | null
+          created_at: string | null
+          description: string | null
+          event_type: string
+          id: string
+          is_active: boolean | null
+          name: string
+          tenant_id: string
+          updated_at: string | null
+        }
+        Insert: {
+          action_config?: Json | null
+          action_type: string
+          condition_config?: Json | null
+          created_at?: string | null
+          description?: string | null
+          event_type: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          tenant_id: string
+          updated_at?: string | null
+        }
+        Update: {
+          action_config?: Json | null
+          action_type?: string
+          condition_config?: Json | null
+          created_at?: string | null
+          description?: string | null
+          event_type?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          tenant_id?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "workflow_rules_tenant_id_fkey"
             columns: ["tenant_id"]
             isOneToOne: false
             referencedRelation: "tenants"
