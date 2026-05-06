@@ -4,7 +4,8 @@ import {
   ListTodo, Plus, Trash2, Calendar, AlertTriangle, 
   CheckCircle2, Clock, Filter, User, Search, 
   MoreVertical, Edit2, CheckCircle, Brain, 
-  Zap, Settings, Activity
+  Zap, Settings, Activity, MessageSquare, 
+  History, Send, AtSign
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -89,6 +90,14 @@ export default function Tasks() {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
 
+  // Collab state
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null);
+  const [comments, setComments] = useState<any[]>([]);
+  const [newComment, setNewComment] = useState("");
+  const [isCollabOpen, setIsCollabOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [activityLogs, setActivityLogs] = useState<any[]>([]);
+
   // Dialog state
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
@@ -137,7 +146,73 @@ export default function Tasks() {
   useEffect(() => {
     fetchTasks();
     fetchTenantUsers();
-  }, [currentTenant]);
+
+    // Realtime subscription
+    const channel = supabase
+      .channel('tasks_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, (payload) => {
+        fetchTasks();
+        if (payload.new && (payload.new as any).assigned_to === user?.id && payload.eventType === 'UPDATE') {
+          toast({ title: "Tarefa Atualizada", description: "Uma tarefa atribuída a você foi modificada." });
+        }
+      })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'task_comments' }, (payload) => {
+        if (selectedTask && payload.new.task_id === selectedTask.id) {
+          fetchComments(selectedTask.id);
+        }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [currentTenant, user?.id, selectedTask?.id]);
+
+  const fetchComments = async (taskId: string) => {
+    const { data } = await supabase
+      .from("task_comments")
+      .select("*, profiles:user_id(full_name)")
+      .eq("task_id", taskId)
+      .order("created_at", { ascending: true });
+    if (data) setComments(data);
+  };
+
+  const fetchHistory = async (taskId: string) => {
+    const { data } = await supabase
+      .from("activity_logs")
+      .select("*, profiles:user_id(full_name)")
+      .eq("entity_id", taskId)
+      .eq("entity_type", "task")
+      .order("created_at", { ascending: false });
+    if (data) setActivityLogs(data);
+  };
+
+  const handleAddComment = async () => {
+    if (!newComment.trim() || !selectedTask || !user) return;
+    const { error } = await supabase
+      .from("task_comments")
+      .insert({
+        task_id: selectedTask.id,
+        user_id: user.id,
+        content: newComment
+      });
+    if (!error) {
+      setNewComment("");
+      fetchComments(selectedTask.id);
+    }
+  };
+
+  const openCollab = (task: Task) => {
+    setSelectedTask(task);
+    fetchComments(task.id);
+    setIsCollabOpen(true);
+  };
+
+  const openHistory = (task: Task) => {
+    setSelectedTask(task);
+    fetchHistory(task.id);
+    setIsHistoryOpen(true);
+  };
 
   const handleSaveTask = async () => {
     if (!currentTenant || !user || !currentTask.title) return;
@@ -372,6 +447,12 @@ export default function Tasks() {
                           <DropdownMenuItem onClick={() => openEditDialog(task)}>
                             <Edit2 className="mr-2 h-4 w-4" /> Editar
                           </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => openCollab(task)}>
+                            <MessageSquare className="mr-2 h-4 w-4" /> Comentários
+                          </DropdownMenuItem>
+                          <DropdownMenuItem onClick={() => openHistory(task)}>
+                            <History className="mr-2 h-4 w-4" /> Histórico
+                          </DropdownMenuItem>
                           <DropdownMenuSeparator />
                           <DropdownMenuItem 
                             className="text-destructive focus:text-destructive"
@@ -524,6 +605,75 @@ export default function Tasks() {
             <Button variant="outline" onClick={() => setIsCreateDialogOpen(false)}>Cancelar</Button>
             <Button onClick={handleSaveTask}>Salvar Tarefa</Button>
           </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    {/* Collaboration Dialog */}
+    <Dialog open={isCollabOpen} onOpenChange={setIsCollabOpen}>
+        <DialogContent className="sm:max-w-[500px] h-[600px] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MessageSquare className="h-5 w-5" />
+              Comentários: {selectedTask?.title}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto space-y-4 py-4 pr-2">
+            {comments.length === 0 ? (
+              <p className="text-center text-muted-foreground py-10">Nenhum comentário ainda.</p>
+            ) : (
+              comments.map((comment) => (
+                <div key={comment.id} className={`flex flex-col ${comment.user_id === user?.id ? 'items-end' : 'items-start'}`}>
+                  <div className={`max-w-[80%] rounded-lg p-3 ${comment.user_id === user?.id ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                    <p className="text-xs font-bold mb-1">{comment.profiles?.full_name || 'Usuário'}</p>
+                    <p className="text-sm">{comment.content}</p>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground mt-1">
+                    {format(new Date(comment.created_at), "HH:mm")}
+                  </span>
+                </div>
+              ))
+            )}
+          </div>
+          <div className="pt-4 border-t flex gap-2">
+            <Input 
+              placeholder="Escreva um comentário... (@ para mencionar)" 
+              value={newComment}
+              onChange={(e) => setNewComment(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && handleAddComment()}
+            />
+            <Button size="icon" onClick={handleAddComment}>
+              <Send className="h-4 w-4" />
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* History Dialog */}
+      <Dialog open={isHistoryOpen} onOpenChange={setIsHistoryOpen}>
+        <DialogContent className="sm:max-w-[550px] h-[600px] flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Activity className="h-5 w-5" />
+              Histórico de Auditoria: {selectedTask?.title}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="flex-1 overflow-y-auto space-y-6 py-4">
+            {activityLogs.map((log) => (
+              <div key={log.id} className="relative pl-6 border-l-2 border-muted pb-4">
+                <div className="absolute -left-[9px] top-0 h-4 w-4 rounded-full bg-background border-2 border-primary" />
+                <div className="flex justify-between items-start mb-1">
+                  <p className="text-sm font-semibold">{log.profiles?.full_name || 'Sistema'}</p>
+                  <span className="text-[10px] text-muted-foreground italic">
+                    {format(new Date(log.created_at), "dd/MM/yyyy HH:mm", { locale: ptBR })}
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground bg-muted/30 p-2 rounded">
+                  {log.action === 'task_insert' ? 'Criou a tarefa' : 
+                   log.action === 'task_update' ? 'Atualizou a tarefa' : 
+                   log.action === 'task_delete' ? 'Removeu a tarefa' : log.action}
+                </p>
+              </div>
+            ))}
+          </div>
         </DialogContent>
       </Dialog>
     </div>
