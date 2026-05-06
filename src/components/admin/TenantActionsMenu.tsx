@@ -36,10 +36,10 @@ const TenantActionsMenu = ({ tenant }: Props) => {
   const toggleActive = async () => {
     const { error } = await supabase.from("tenants").update({ is_active: !tenant.is_active }).eq("id", tenant.id);
     if (error) {
-      toast({ title: "Erro ao atualizar", description: error.message, variant: "destructive" });
+      toast.error("Erro ao atualizar: " + error.message);
     } else {
       await logAudit({ action: tenant.is_active ? "tenant.deactivated" : "tenant.activated", resourceType: "tenant", resourceId: tenant.id, details: { name: tenant.name } });
-      toast({ title: `Tenant ${tenant.is_active ? "desativado" : "ativado"} com sucesso.` });
+      toast.success(`Tenant ${tenant.is_active ? "desativado" : "ativado"} com sucesso.`);
       queryClient.invalidateQueries({ queryKey: ["admin-tenants"] });
     }
   };
