@@ -1,49 +1,50 @@
 import { motion } from "framer-motion";
 import {
   ClipboardCheck, Search, FileText, Cookie, UserCheck,
-  AlertTriangle, BarChart3, ShieldCheck
+  AlertTriangle, BarChart3, ShieldCheck, Brain, Zap,
+  Users, MessageSquare, History, Search as SearchIcon
 } from "lucide-react";
 
 const features = [
   {
-    icon: ClipboardCheck,
-    title: "Diagnóstico de Maturidade",
-    desc: "Questionário inteligente que gera score por domínio e plano de ação automatizado.",
+    icon: Brain,
+    title: "IA de Priorização",
+    desc: "Nossa IA analisa riscos e prazos para sugerir exatamente onde você deve focar hoje.",
   },
   {
-    icon: Search,
-    title: "Mapeamento de Dados",
-    desc: "Inventário completo de atividades de tratamento, ROPA e registro de bases legais.",
+    icon: Zap,
+    title: "Automação de Workflow",
+    desc: "Gatilhos inteligentes que notificam responsáveis e atualizam status automaticamente.",
+  },
+  {
+    icon: MessageSquare,
+    title: "Colaboração Realtime",
+    desc: "Comentários contextuais e menções (@) para resolver pendências em equipe sem sair da plataforma.",
+  },
+  {
+    icon: History,
+    title: "Trilha de Auditoria",
+    desc: "Log imutável de quem alterou o quê e quando, essencial para fiscalizações da ANPD.",
+  },
+  {
+    icon: SearchIcon,
+    title: "Busca Universal (⌘K)",
+    desc: "Busca instantânea por usuários, tarefas e configurações em qualquer tela do sistema.",
   },
   {
     icon: FileText,
     title: "Geração de Documentos",
-    desc: "Políticas de privacidade, RIPD, termos de uso e minutas gerados automaticamente.",
-  },
-  {
-    icon: Cookie,
-    title: "Consentimento & Cookies",
-    desc: "Banner embarcável, logs de aceite por visitante e versionamento de política.",
+    desc: "Políticas, RIPD e termos gerados automaticamente com os dados do seu mapeamento.",
   },
   {
     icon: UserCheck,
     title: "Portal do Titular",
-    desc: "Canal de atendimento com SLA, classificação de direitos e trilha de auditoria.",
-  },
-  {
-    icon: AlertTriangle,
-    title: "Gestão de Incidentes",
-    desc: "Workflow: cadastro, análise de impacto, comunicação à ANPD e plano corretivo.",
+    desc: "Canal pronto para receber e gerenciar requisições de direitos dos titulares (SLA).",
   },
   {
     icon: ShieldCheck,
-    title: "Auditoria Técnica",
-    desc: "Controles de segurança, evidências e scoring de conformidade técnica.",
-  },
-  {
-    icon: BarChart3,
-    title: "Relatórios ANPD",
-    desc: "ROPA, RIPD, DPIA e comunicados gerados a partir dos dados já cadastrados.",
+    title: "Gestão de Fornecedores",
+    desc: "Avalie e monitore a conformidade dos seus parceiros de negócio de forma centralizada.",
   },
 ];
 

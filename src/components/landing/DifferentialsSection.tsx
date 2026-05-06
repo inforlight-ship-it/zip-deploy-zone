@@ -29,8 +29,8 @@ const diffs = [
   },
   {
     icon: Headphones,
-    title: "Suporte especializado",
-    desc: "Conte com suporte focado em privacidade e proteção de dados para tirar suas dúvidas.",
+    title: "IA & Automação Real",
+    desc: "Não somos apenas repositório de arquivos. Nossa IA trabalha 24/7 priorizando riscos e automatizando fluxos.",
   },
 ];
 
@@ -44,8 +44,8 @@ export default function DifferentialsSection() {
             Diferenciais
           </span>
           <h2 className="mt-5 font-display text-3xl font-bold tracking-tight sm:text-4xl">
-            Por que o AdequaFácil é{" "}
-            <span className="text-gradient-emerald">diferente</span>?
+            A única plataforma com <br className="hidden sm:block" />
+            <span className="text-gradient-emerald">Inteligência Operacional</span>
           </h2>
         </div>
 
