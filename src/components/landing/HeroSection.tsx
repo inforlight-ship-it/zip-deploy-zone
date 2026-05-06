@@ -118,9 +118,9 @@ export default function HeroSection() {
               {[
                 { label: "Score Geral", value: "78%", change: "+8%" },
                 { label: "Diagnósticos", value: "12", change: "+3" },
-                { label: "DSRs Ativas", value: "5", change: "-2" },
+                { label: "Tarefas Ativas", value: "32", change: "IA ativa" },
                 { label: "Conformidade", value: "87%", change: "+5%" },
-                { label: "Fornecedores", value: "24", change: "+4" },
+                { label: "Alertas Risco", value: "0", change: "Seguro" },
               ].map((k) => (
                 <div key={k.label} className="rounded-xl bg-muted/20 border border-border/30 p-3">
                   <p className="text-[11px] text-muted-foreground">{k.label}</p>
