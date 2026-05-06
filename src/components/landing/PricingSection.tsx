@@ -4,18 +4,18 @@ import { ArrowRight, Check, Sparkles, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const included = [
-  "Diagnóstico de Maturidade LGPD",
-  "Mapeamento de Dados Pessoais",
-  "Geração Automática de Documentos",
-  "Gestão de Consentimento & Cookies",
-  "Portal do Titular (DSAR)",
-  "Gestão de Incidentes",
-  "Auditoria de Segurança",
-  "Relatórios para ANPD",
+  "IA de Priorização de Riscos",
+  "Automação de Workflows",
+  "Colaboração Realtime & Menções",
+  "Trilha de Auditoria Imutável",
+  "Busca Universal (⌘K)",
+  "Diagnóstico LGPD Completo",
+  "Geração Automática de RIPD/ROPA",
+  "Portal do Titular com SLA",
   "Gestão de Fornecedores",
-  "Portal DPO Completo",
-  "Multi-tenant & Multi-usuário",
-  "Suporte prioritário",
+  "Suporte Especializado",
+  "Multi-tenant & White-label",
+  "Segurança Enterprise (Soft Delete)",
 ];
 
 export default function PricingSection() {

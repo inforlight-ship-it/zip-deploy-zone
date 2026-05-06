@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ClipboardList, Settings, FileCheck, TrendingUp } from "lucide-react";
+import { ClipboardList, Settings, FileCheck, Brain, Zap, MessageSquare } from "lucide-react";
 
 const steps = [
   {
@@ -15,16 +15,16 @@ const steps = [
     desc: "Cadastre atividades de tratamento, fornecedores e configure o portal do titular.",
   },
   {
-    icon: FileCheck,
+    icon: Brain,
     step: "03",
-    title: "Gere documentos e relatórios",
-    desc: "Políticas, RIPD, ROPA e comunicados são gerados automaticamente com seus dados.",
+    title: "IA analisa e prioriza",
+    desc: "Nossa IA processa seus dados, calcula riscos e sugere as tarefas prioritárias para sua equipe.",
   },
   {
-    icon: TrendingUp,
+    icon: Zap,
     step: "04",
-    title: "Monitore continuamente",
-    desc: "Acompanhe KPIs, alertas de vencimento e mantenha a conformidade em dia.",
+    title: "Automação e Auditoria",
+    desc: "Gere documentos em segundos e mantenha uma trilha de auditoria imutável para a ANPD.",
   },
 ];
 

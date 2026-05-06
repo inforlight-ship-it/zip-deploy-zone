@@ -30,6 +30,14 @@ const faqs = [
     q: "Posso usar a plataforma sem conhecimento jurídico?",
     a: "Absolutamente. O AdequaFácil foi projetado para empreendedores e gestores, não para advogados. Linguagem simples, guias passo a passo e automação fazem o trabalho pesado por você.",
   },
+  {
+    q: "Como a Inteligência Artificial ajuda na conformidade?",
+    a: "Nossa IA não apenas gera textos; ela analisa o contexto do seu negócio e prioriza tarefas baseada em criticidade e prazos legais, evitando que você gaste tempo com o que não é urgente.",
+  },
+  {
+    q: "A plataforma é segura para dados sensíveis?",
+    a: "Sim. Utilizamos criptografia de ponta, trilha de auditoria imutável e sistema de soft-delete para garantir que nenhuma informação crítica seja perdida ou acessada indevidamente.",
+  },
 ];
 
 export default function FAQSection() {
