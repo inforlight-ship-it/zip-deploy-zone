@@ -1937,7 +1937,7 @@ export type Database = {
     Views: {
       tenant_task_analytics: {
         Row: {
-          avg_completion_time: string | null
+          avg_completion_time: number | null
           completed_tasks: number | null
           pending_tasks: number | null
           tenant_id: string | null

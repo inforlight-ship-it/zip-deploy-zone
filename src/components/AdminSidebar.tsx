@@ -1,9 +1,10 @@
 import {
-  LayoutDashboard, Building2, Users, ScrollText, Settings, LogOut, Shield, ArrowLeft,
+  LayoutDashboard, Building2, Users, ScrollText, Settings, LogOut, Shield, ArrowLeft, Search
 } from "lucide-react";
 import { NavLink } from "@/components/NavLink";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
+import { CommandMenu } from "@/components/CommandMenu";
 import {
   Sidebar, SidebarContent, SidebarGroup, SidebarGroupContent, SidebarGroupLabel,
   SidebarMenu, SidebarMenuButton, SidebarMenuItem, SidebarFooter, useSidebar,
@@ -42,6 +43,10 @@ export function AdminSidebar() {
               <p className="text-[10px] text-sidebar-foreground/50 uppercase tracking-wider">Superadmin</p>
             </div>
           )}
+        </div>
+
+        <div className="px-4 py-2">
+          <CommandMenu />
         </div>
 
         <SidebarGroup>

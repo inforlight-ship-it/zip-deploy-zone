@@ -54,9 +54,13 @@ const ProtectedRoute = ({ children, skipPasswordCheck, skipMfaCheck, requireSupe
     return <Navigate to="/dashboard" replace />;
   }
 
-  // Superadmin can ONLY access admin routes — redirect away from tenant routes
+  // Superadmin can access admin routes, but should also be able to access tenant routes for support
   if (!requireSuperadmin && isSuperadmin && !skipPasswordCheck && !skipMfaCheck) {
-    return <Navigate to="/admin/dashboard" replace />;
+    // Se o superadmin estiver no meio de um fluxo de auth ou não estiver impersonando, 
+    // e tentar acessar uma rota de tenant sem um tenant selecionado, vai para admin.
+    if (!currentTenant && location.pathname !== "/select-tenant") {
+      return <Navigate to="/admin/dashboard" replace />;
+    }
   }
 
   if (
