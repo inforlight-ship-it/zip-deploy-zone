@@ -367,81 +367,102 @@ export default function Tasks() {
         </div>
       </div>
 
-      {/* AI Insights Bar */}
-      {filteredTasks.some(t => t.ai_priority_score && t.ai_priority_score > 70) && (
-        <motion.div 
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-primary/10 border border-primary/20 rounded-lg p-4 flex items-center gap-4"
-        >
-          <div className="bg-primary/20 p-2 rounded-full text-primary">
-            <Brain className="h-5 w-5" />
-          </div>
-          <div className="flex-1">
-            <p className="text-sm font-semibold text-primary">Sugestão da IA para hoje</p>
-            <p className="text-xs text-muted-foreground">
-              Detectamos {filteredTasks.filter(t => t.ai_priority_score && t.ai_priority_score > 70).length} tarefas críticas que precisam de atenção imediata baseado em prazos e impacto.
-            </p>
-          </div>
-          <Button size="sm" variant="outline" className="text-xs">Ver Recomendações</Button>
-        </motion.div>
-      )}
+      <Tabs defaultValue="list" className="w-full">
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+          <TabsList className="grid w-full md:w-auto grid-cols-3">
+            <TabsTrigger value="list" className="gap-2"><ListTodo className="h-4 w-4" /> Lista</TabsTrigger>
+            <TabsTrigger value="kanban" className="gap-2"><LayoutGrid className="h-4 w-4" /> Kanban</TabsTrigger>
+            <TabsTrigger value="calendar" className="gap-2"><CalendarDays className="h-4 w-4" /> Calendário</TabsTrigger>
+          </TabsList>
 
-      <div className="flex flex-col md:flex-row gap-4">
-        <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-          <Input 
-            placeholder="Buscar tarefas..." 
-            className="pl-10" 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-        <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-muted-foreground" />
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os Status</SelectItem>
-              <SelectItem value="pendente">Pendente</SelectItem>
-              <SelectItem value="em_andamento">Em andamento</SelectItem>
-              <SelectItem value="concluida">Concluída</SelectItem>
-              <SelectItem value="cancelada">Cancelada</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      {loading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-        </div>
-      ) : filteredTasks.length === 0 ? (
-        <Card className="border-dashed py-20">
-          <CardContent className="flex flex-center flex-col items-center justify-center text-center space-y-3">
-            <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
-              <ListTodo className="h-6 w-6 text-muted-foreground" />
+          <div className="flex flex-col md:flex-row gap-4 w-full md:w-auto">
+            <div className="relative flex-1 md:w-64">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input 
+                placeholder="Buscar tarefas..." 
+                className="pl-10" 
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
             </div>
-            <div className="max-w-[400px]">
-              <h3 className="text-lg font-medium">Nenhuma tarefa encontrada</h3>
-              <p className="text-sm text-muted-foreground">
-                Comece criando uma nova tarefa para organizar o fluxo de trabalho do seu tenant.
+            <div className="flex items-center gap-2">
+              <Filter className="h-4 w-4 text-muted-foreground" />
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos os Status</SelectItem>
+                  <SelectItem value="pendente">Pendente</SelectItem>
+                  <SelectItem value="em_andamento">Em andamento</SelectItem>
+                  <SelectItem value="concluida">Concluída</SelectItem>
+                  <SelectItem value="cancelada">Cancelada</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+
+        {/* AI Insights Bar */}
+        {filteredTasks.some(t => t.ai_priority_score && t.ai_priority_score > 70) && (
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="bg-primary/10 border border-primary/20 rounded-lg p-4 flex items-center gap-4 mb-6"
+          >
+            <div className="bg-primary/20 p-2 rounded-full text-primary">
+              <Brain className="h-5 w-5" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-semibold text-primary">Sugestão da IA para hoje</p>
+              <p className="text-xs text-muted-foreground">
+                Detectamos {filteredTasks.filter(t => t.ai_priority_score && t.ai_priority_score > 70).length} tarefas críticas que precisam de atenção imediata.
               </p>
             </div>
-            <Button variant="outline" onClick={openCreateDialog}>Criar primeira tarefa</Button>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredTasks.map((task) => (
-            <motion.div
-              key={task.id}
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              layout
-            >
+            <Button size="sm" variant="outline" className="text-xs">Ver Recomendações</Button>
+          </motion.div>
+        )}
+
+        <TabsContent value="list" className="mt-0">
+          {loading ? (
+            <div className="flex items-center justify-center py-20">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : filteredTasks.length === 0 ? (
+            <EmptyState onCreate={openCreateDialog} />
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredTasks.map((task) => (
+                <TaskCard 
+                  key={task.id} 
+                  task={task} 
+                  onEdit={openEditDialog} 
+                  onDelete={handleDeleteTask}
+                  onToggle={toggleTaskStatus}
+                  onCollab={openCollab}
+                  onHistory={openHistory}
+                />
+              ))}
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="kanban" className="mt-0">
+          <KanbanBoard 
+            tasks={filteredTasks} 
+            onTaskMove={async (id, status) => {
+              await supabase.from("tasks").update({ status }).eq("id", id);
+              fetchTasks();
+            }}
+            onEdit={openEditDialog}
+            onCollab={openCollab}
+          />
+        </TabsContent>
+
+        <TabsContent value="calendar" className="mt-0">
+          <TaskCalendar tasks={filteredTasks} onSelectTask={openEditDialog} />
+        </TabsContent>
+      </Tabs>
               <Card className={`group relative hover:shadow-glow-sm transition-all duration-300 border-l-4 ${
                 task.status === 'concluida' ? 'border-l-emerald-500 opacity-80' : 
                 task.priority === 'critica' ? 'border-l-destructive' :
