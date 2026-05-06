@@ -3,7 +3,8 @@ import { motion } from "framer-motion";
 import {
   ListTodo, Plus, Trash2, Calendar, AlertTriangle, 
   CheckCircle2, Clock, Filter, User, Search, 
-  MoreVertical, Edit2, CheckCircle
+  MoreVertical, Edit2, CheckCircle, Brain, 
+  Zap, Settings, Activity
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,8 @@ interface Task {
   due_date: string | null;
   assigned_to: string | null;
   created_at: string;
+  ai_priority_score?: number;
+  ai_recommendation?: string;
   profiles?: {
     full_name: string | null;
   } | null;
@@ -162,18 +165,26 @@ export default function Tasks() {
       } else {
         toast({ title: "Tarefa atualizada com sucesso" });
         setIsCreateDialogOpen(false);
+        // Trigger AI analysis for updated task
+        supabase.functions.invoke('ai-priority-worker', { body: { taskId: currentTask.id } });
         fetchTasks();
       }
     } else {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("tasks")
-        .insert([taskData]);
+        .insert([taskData])
+        .select()
+        .single();
 
       if (error) {
         toast({ title: "Erro ao criar tarefa", description: error.message, variant: "destructive" });
       } else {
         toast({ title: "Tarefa criada com sucesso" });
         setIsCreateDialogOpen(false);
+        // Trigger AI analysis for new task
+        if (data) {
+          supabase.functions.invoke('ai-priority-worker', { body: { taskId: data.id } });
+        }
         fetchTasks();
       }
     }
@@ -240,13 +251,38 @@ export default function Tasks() {
     <div className="container mx-auto p-6 space-y-6">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Tarefas</h1>
-          <p className="text-muted-foreground">Gerencie as atividades de conformidade e governança da sua empresa.</p>
+          <h1 className="text-3xl font-bold tracking-tight">Tarefas Inteligentes</h1>
+          <p className="text-muted-foreground">Gerencie atividades com automação e inteligência artificial.</p>
         </div>
-        <Button onClick={openCreateDialog} className="shadow-glow-sm">
-          <Plus className="mr-2 h-4 w-4" /> Nova Tarefa
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" className="gap-2">
+            <Settings className="h-4 w-4" /> Automar
+          </Button>
+          <Button onClick={openCreateDialog} className="shadow-glow-sm">
+            <Plus className="mr-2 h-4 w-4" /> Nova Tarefa
+          </Button>
+        </div>
       </div>
+
+      {/* AI Insights Bar */}
+      {filteredTasks.some(t => t.ai_priority_score && t.ai_priority_score > 70) && (
+        <motion.div 
+          initial={{ opacity: 0, y: -10 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-primary/10 border border-primary/20 rounded-lg p-4 flex items-center gap-4"
+        >
+          <div className="bg-primary/20 p-2 rounded-full text-primary">
+            <Brain className="h-5 w-5" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-primary">Sugestão da IA para hoje</p>
+            <p className="text-xs text-muted-foreground">
+              Detectamos {filteredTasks.filter(t => t.ai_priority_score && t.ai_priority_score > 70).length} tarefas críticas que precisam de atenção imediata baseado em prazos e impacto.
+            </p>
+          </div>
+          <Button size="sm" variant="outline" className="text-xs">Ver Recomendações</Button>
+        </motion.div>
+      )}
 
       <div className="flex flex-col md:flex-row gap-4">
         <div className="relative flex-1">
@@ -355,6 +391,15 @@ export default function Tasks() {
                   <p className="text-sm text-muted-foreground line-clamp-2 h-10">
                     {task.description || "Sem descrição"}
                   </p>
+
+                  {task.ai_recommendation && (
+                    <div className="bg-primary/5 border border-primary/10 rounded-md p-2 mt-2 flex items-start gap-2">
+                      <Zap className="h-3 w-3 text-primary shrink-0 mt-0.5" />
+                      <p className="text-[10px] text-primary leading-tight italic">
+                        {task.ai_recommendation}
+                      </p>
+                    </div>
+                  )}
                   
                   <div className="flex flex-wrap gap-2 pt-2">
                     <Badge variant="outline" className={priorityColors[task.priority] + " border-none text-[10px]"}>
