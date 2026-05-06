@@ -67,6 +67,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     isMfaRequired: false,
     availableTenants: [],
     isLoading: true,
+    impersonatorId: null,
   });
 
   const fetchProfile = useCallback(async (userId: string) => {
@@ -302,6 +303,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [fetchTenants, state.user]);
 
+  const impersonateUser = useCallback(async (userId: string, tenantId: string, reason: string) => {
+    if (!state.isSuperadmin || !state.user) return;
+    
+    // Log do início da impersonação
+    await supabase.from("support_impersonation_logs").insert({
+      admin_id: state.user.id,
+      target_user_id: userId,
+      tenant_id: tenantId,
+      reason
+    });
+
+    // Armazenar o admin original para permitir retorno
+    localStorage.setItem("support_impersonator_id", state.user.id);
+    localStorage.setItem("support_impersonation_tenant", tenantId);
+    
+    // Em uma implementação real com backend customizado, trocaríamos o token JWT.
+    // Como estamos usando Supabase Client direto, simularemos a visão do tenant.
+    const impersonatedTenant = state.availableTenants.find(t => t.id === tenantId);
+    
+    setState(prev => ({
+      ...prev,
+      impersonatorId: state.user?.id || null,
+      currentTenant: impersonatedTenant || prev.currentTenant
+    }));
+
+    toast.info("Modo Suporte Ativado: Você está visualizando o ambiente como o usuário selecionado.");
+  }, [state.isSuperadmin, state.user, state.availableTenants]);
+
+  const stopImpersonation = useCallback(async () => {
+    localStorage.removeItem("support_impersonator_id");
+    localStorage.removeItem("support_impersonation_tenant");
+    
+    setState(prev => ({
+      ...prev,
+      impersonatorId: null
+    }));
+    
+    toast.success("Modo Suporte Desativado.");
+  }, []);
+
   const logout = useCallback(async () => {
     await supabase.auth.signOut();
   }, []);
@@ -317,6 +358,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       verifyMfa,
       selectTenant,
       switchTenant,
+      impersonateUser,
+      stopImpersonation,
       logout,
       signOut: logout,
       refreshTenants,
