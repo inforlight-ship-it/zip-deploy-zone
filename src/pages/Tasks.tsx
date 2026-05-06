@@ -94,6 +94,7 @@ export default function Tasks() {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null);
   const [comments, setComments] = useState<any[]>([]);
   const [newComment, setNewComment] = useState("");
+  const [showMentions, setShowMentions] = useState(false);
   const [isCollabOpen, setIsCollabOpen] = useState(false);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [activityLogs, setActivityLogs] = useState<any[]>([]);
@@ -149,7 +150,7 @@ export default function Tasks() {
 
     // Realtime subscription
     const channel = supabase
-      .channel('tasks_changes')
+      .channel('realtime_engagement')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'tasks' }, (payload) => {
         fetchTasks();
         if (payload.new && (payload.new as any).assigned_to === user?.id && payload.eventType === 'UPDATE') {
@@ -159,6 +160,15 @@ export default function Tasks() {
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'task_comments' }, (payload) => {
         if (selectedTask && payload.new.task_id === selectedTask.id) {
           fetchComments(selectedTask.id);
+        }
+        // Notification for mention (simulated check)
+        if (payload.new.content.includes(`@${user?.id}`) || payload.new.content.includes(`@${user?.email}`)) {
+          toast({ title: "Nova Menção", description: "Você foi mencionado em um comentário." });
+        }
+      })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'invitations' }, (payload) => {
+        if (payload.new.email === user?.email) {
+          toast({ title: "Novo Convite", description: "Você recebeu um novo convite para um Tenant." });
         }
       })
       .subscribe();
@@ -633,16 +643,39 @@ export default function Tasks() {
               ))
             )}
           </div>
-          <div className="pt-4 border-t flex gap-2">
-            <Input 
-              placeholder="Escreva um comentário... (@ para mencionar)" 
-              value={newComment}
-              onChange={(e) => setNewComment(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleAddComment()}
-            />
-            <Button size="icon" onClick={handleAddComment}>
-              <Send className="h-4 w-4" />
-            </Button>
+          <div className="pt-4 border-t space-y-2">
+            {showMentions && (
+              <div className="bg-background border rounded-md shadow-lg p-2 max-h-32 overflow-y-auto">
+                <p className="text-[10px] text-muted-foreground mb-1 uppercase font-bold px-2">Mencionar usuário</p>
+                {tenantUsers.map(u => (
+                  <button
+                    key={u.id}
+                    className="w-full text-left px-2 py-1.5 text-xs hover:bg-muted rounded-sm transition-colors"
+                    onClick={() => {
+                      setNewComment(prev => prev.split('@')[0] + `@${u.full_name || u.email} `);
+                      setShowMentions(false);
+                    }}
+                  >
+                    {u.full_name || u.email}
+                  </button>
+                ))}
+              </div>
+            )}
+            <div className="flex gap-2">
+              <Input 
+                placeholder="Escreva um comentário... (@ para mencionar)" 
+                value={newComment}
+                onChange={(e) => {
+                  setNewComment(e.target.value);
+                  if (e.target.value.endsWith('@')) setShowMentions(true);
+                  else if (!e.target.value.includes('@')) setShowMentions(false);
+                }}
+                onKeyDown={(e) => e.key === 'Enter' && handleAddComment()}
+              />
+              <Button size="icon" onClick={handleAddComment}>
+                <Send className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
