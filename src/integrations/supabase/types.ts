@@ -1555,6 +1555,7 @@ export type Database = {
           plan_id: string | null
           settings: Json | null
           slug: string
+          subscription_id: string | null
           trial_ends_at: string | null
           updated_at: string
         }
@@ -1569,6 +1570,7 @@ export type Database = {
           plan_id?: string | null
           settings?: Json | null
           slug: string
+          subscription_id?: string | null
           trial_ends_at?: string | null
           updated_at?: string
         }
@@ -1583,6 +1585,7 @@ export type Database = {
           plan_id?: string | null
           settings?: Json | null
           slug?: string
+          subscription_id?: string | null
           trial_ends_at?: string | null
           updated_at?: string
         }
