@@ -1955,6 +1955,27 @@ export type Database = {
       }
     }
     Functions: {
+      complete_supplier_assessment_token: {
+        Args: { _token: string }
+        Returns: boolean
+      }
+      get_supplier_assessment_token: {
+        Args: { _token: string }
+        Returns: {
+          completed_at: string
+          expires_at: string
+          id: string
+          supplier_id: string
+          supplier_name: string
+        }[]
+      }
+      get_tenant_by_slug: {
+        Args: { _slug: string }
+        Returns: {
+          id: string
+          name: string
+        }[]
+      }
       get_user_tenant_id: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
