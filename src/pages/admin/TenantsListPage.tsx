@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Building2, Plus, Search, CheckCircle2, XCircle } from "lucide-react";
+import { Building2, Plus, Search, CheckCircle2, XCircle, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -8,10 +8,24 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import CreateTenantDialog from "@/components/admin/CreateTenantDialog";
 import TenantActionsMenu from "@/components/admin/TenantActionsMenu";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const TenantsListPage = () => {
   const [search, setSearch] = useState("");
   const [showCreate, setShowCreate] = useState(false);
+  const { impersonateUser } = useAuth();
+  const navigate = useNavigate();
+
+  const handleAccessTenant = async (tenant: any) => {
+    try {
+      await impersonateUser(null, tenant.id, `Acesso direto do Super Admin ao tenant ${tenant.name}`);
+      navigate("/dashboard");
+    } catch (e: any) {
+      toast.error("Falha ao acessar tenant: " + (e?.message || "erro"));
+    }
+  };
 
   const { data: tenants = [] } = useQuery({
     queryKey: ["admin-tenants"],
