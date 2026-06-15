@@ -43,7 +43,7 @@ interface AuthContextType extends AuthState {
   verifyMfa: (code: string) => Promise<boolean>;
   selectTenant: (tenantId: string) => Promise<void>;
   switchTenant: (tenantId: string) => Promise<void>;
-  impersonateUser: (userId: string, tenantId: string, reason: string) => Promise<void>;
+  impersonateUser: (userId: string | null, tenantId: string, reason: string) => Promise<void>;
   stopImpersonation: () => Promise<void>;
   logout: () => Promise<void>;
   signOut: () => Promise<void>;
