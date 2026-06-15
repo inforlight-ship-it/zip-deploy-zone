@@ -805,7 +805,15 @@ export default function Mapeamento() {
               <div>
                 <Label>Tipos de Dados Coletados *</Label>
                 <div className="mt-1">
-                  <TagInput values={form.data_types} onChange={(v) => updateField("data_types", v)} suggestions={DATA_TYPES_SUGGESTIONS} placeholder="Adicione tipos de dados..." />
+                  <TagInput
+                    values={form.data_types}
+                    onChange={(v) => updateField("data_types", v)}
+                    suggestions={[...DATA_TYPES_SUGGESTIONS, ...customNormal]}
+                    placeholder="Adicione tipos de dados..."
+                    onPersistNew={(t) => persistOption(t, "normal")}
+                    customOptions={customNormal}
+                    onDeleteCustom={(t) => deleteOption(t, "normal")}
+                  />
                 </div>
               </div>
               <div className="flex items-center gap-3 rounded-lg border border-border p-4">
