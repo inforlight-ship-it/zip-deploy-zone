@@ -73,12 +73,8 @@ export default function AvaliacaoExterna() {
         await anonClient.auth.signOut();
 
         const { data: tokenRow, error: tokenErr } = await anonClient
-          .from("supplier_assessment_tokens")
-          .select("id, supplier_id, supplier_name, expires_at, completed_at")
-          .eq("token", token)
+          .rpc("get_supplier_assessment_token", { _token: token })
           .maybeSingle();
-
-        console.log("Token query result:", { tokenRow, tokenErr });
 
         if (tokenErr) {
           console.error("Token query error:", tokenErr);
@@ -89,18 +85,6 @@ export default function AvaliacaoExterna() {
 
         if (!tokenRow) {
           setError("Link de avaliação inválido ou expirado.");
-          setLoading(false);
-          return;
-        }
-
-        if (tokenRow.completed_at) {
-          setError("Esta avaliação já foi preenchida.");
-          setLoading(false);
-          return;
-        }
-
-        if (new Date(tokenRow.expires_at) < new Date()) {
-          setError("Este link de avaliação expirou.");
           setLoading(false);
           return;
         }
