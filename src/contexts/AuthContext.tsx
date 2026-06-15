@@ -308,32 +308,50 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [fetchTenants, state.user]);
 
-  const impersonateUser = useCallback(async (userId: string, tenantId: string, reason: string) => {
+  const impersonateUser = useCallback(async (userId: string | null, tenantId: string, reason: string) => {
     if (!state.isSuperadmin || !state.user) return;
-    
-    // Log do início da impersonação
+
+    // Log do início da impersonação / acesso de suporte
     await supabase.from("support_impersonation_logs").insert({
       admin_id: state.user.id,
       target_user_id: userId,
       tenant_id: tenantId,
-      reason
+      reason,
     });
 
     // Armazenar o admin original para permitir retorno
     localStorage.setItem("support_impersonator_id", state.user.id);
     localStorage.setItem("support_impersonation_tenant", tenantId);
-    
-    // Em uma implementação real com backend customizado, trocaríamos o token JWT.
-    // Como estamos usando Supabase Client direto, simularemos a visão do tenant.
-    const impersonatedTenant = state.availableTenants.find(t => t.id === tenantId);
-    
+
+    // Buscar dados do tenant (superadmin pode acessar qualquer tenant)
+    let impersonatedTenant = state.availableTenants.find(t => t.id === tenantId) || null;
+    if (!impersonatedTenant) {
+      const { data: t } = await supabase
+        .from("tenants")
+        .select("id, name, slug, tenant_branding(primary_color)")
+        .eq("id", tenantId)
+        .maybeSingle();
+      if (t) {
+        impersonatedTenant = {
+          id: t.id,
+          name: t.name,
+          slug: t.slug,
+          role: "superadmin",
+          primary_color: (t as any).tenant_branding?.[0]?.primary_color || undefined,
+        };
+      }
+    }
+
     setState(prev => ({
       ...prev,
       impersonatorId: state.user?.id || null,
-      currentTenant: impersonatedTenant || prev.currentTenant
+      currentTenant: impersonatedTenant || prev.currentTenant,
+      availableTenants: impersonatedTenant && !prev.availableTenants.find(t => t.id === impersonatedTenant!.id)
+        ? [...prev.availableTenants, impersonatedTenant]
+        : prev.availableTenants,
     }));
 
-    toast.info("Modo Suporte Ativado: Você está visualizando o ambiente como o usuário selecionado.");
+    toast.info(`Modo Suporte Ativado: visualizando o tenant ${impersonatedTenant?.name || ""}.`);
   }, [state.isSuperadmin, state.user, state.availableTenants]);
 
   const stopImpersonation = useCallback(async () => {
