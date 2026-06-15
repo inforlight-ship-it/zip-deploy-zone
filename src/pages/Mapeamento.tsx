@@ -179,22 +179,44 @@ function riskIcon(level: string) {
   }
 }
 
-function TagInput({ values, onChange, suggestions, placeholder }: {
+function TagInput({
+  values,
+  onChange,
+  suggestions,
+  placeholder,
+  onPersistNew,
+  customOptions,
+  onDeleteCustom,
+}: {
   values: string[];
   onChange: (v: string[]) => void;
   suggestions: string[];
   placeholder: string;
+  onPersistNew?: (tag: string) => Promise<void> | void;
+  customOptions?: string[];
+  onDeleteCustom?: (tag: string) => Promise<void> | void;
 }) {
   const [input, setInput] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [manageOpen, setManageOpen] = useState(false);
 
   const filtered = suggestions.filter(
     (s) => !values.includes(s) && s.toLowerCase().includes(input.toLowerCase())
   );
 
-  const addTag = (tag: string) => {
-    if (tag.trim() && !values.includes(tag.trim())) {
-      onChange([...values, tag.trim()]);
+  const addTag = async (tag: string) => {
+    const clean = tag.trim();
+    if (!clean) {
+      setInput("");
+      setShowSuggestions(false);
+      return;
+    }
+    if (!values.includes(clean)) {
+      onChange([...values, clean]);
+    }
+    // Persist as reusable option if it is brand new
+    if (onPersistNew && !suggestions.includes(clean)) {
+      try { await onPersistNew(clean); } catch { /* no-op */ }
     }
     setInput("");
     setShowSuggestions(false);
@@ -219,17 +241,35 @@ function TagInput({ values, onChange, suggestions, placeholder }: {
           onFocus={() => setShowSuggestions(true)}
           onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
           onKeyDown={(e) => {
-            if (e.key === "Enter") { e.preventDefault(); addTag(input); }
+            if (e.key === "Enter" || e.key === ",") { e.preventDefault(); addTag(input); }
           }}
-          placeholder={values.length === 0 ? placeholder : ""}
-          className="flex-1 min-w-[120px] bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+          placeholder={values.length === 0 ? placeholder : "Digite e pressione Enter para adicionar..."}
+          className="flex-1 min-w-[160px] bg-transparent text-sm outline-none placeholder:text-muted-foreground"
         />
       </div>
+
+      {/* Helper row: add button + manage */}
+      <div className="mt-1 flex items-center justify-between gap-2">
+        <p className="text-[11px] text-muted-foreground">
+          Pressione <kbd className="rounded border bg-muted px-1">Enter</kbd> ou vírgula para adicionar. Novos tipos ficam salvos para reutilização.
+        </p>
+        {onDeleteCustom && customOptions && customOptions.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setManageOpen((v) => !v)}
+            className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground"
+          >
+            <Settings2 className="h-3 w-3" /> Gerenciar ({customOptions.length})
+          </button>
+        )}
+      </div>
+
       {showSuggestions && filtered.length > 0 && (
         <div className="absolute z-50 mt-1 max-h-40 w-full overflow-auto rounded-lg border border-border bg-popover p-1 shadow-elevated">
-          {filtered.slice(0, 8).map((s) => (
+          {filtered.slice(0, 10).map((s) => (
             <button
               key={s}
+              type="button"
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => addTag(s)}
               className="w-full rounded-md px-3 py-1.5 text-left text-sm hover:bg-accent"
@@ -237,6 +277,32 @@ function TagInput({ values, onChange, suggestions, placeholder }: {
               {s}
             </button>
           ))}
+        </div>
+      )}
+
+      {manageOpen && onDeleteCustom && customOptions && (
+        <div className="mt-2 rounded-lg border border-border bg-card p-3">
+          <div className="mb-2 flex items-center justify-between">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Tipos personalizados salvos</p>
+            <button type="button" onClick={() => setManageOpen(false)} className="text-muted-foreground hover:text-foreground">
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {customOptions.map((c) => (
+              <span key={c} className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-0.5 text-xs">
+                {c}
+                <button
+                  type="button"
+                  onClick={() => onDeleteCustom(c)}
+                  className="text-muted-foreground hover:text-destructive"
+                  title="Remover da biblioteca"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </span>
+            ))}
+          </div>
         </div>
       )}
     </div>
