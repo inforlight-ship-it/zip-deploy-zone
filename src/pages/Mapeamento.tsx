@@ -382,6 +382,10 @@ export default function Mapeamento() {
       toast({ title: "Erro ao remover", description: error.message, variant: "destructive" });
     }
   };
+
+  const fetchActivities = async () => {
+    if (!user) return;
+    setLoading(true);
     const { data, error } = await supabase
       .from("processing_activities")
       .select("*")
