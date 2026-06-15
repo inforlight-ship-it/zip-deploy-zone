@@ -73,12 +73,8 @@ export default function AvaliacaoExterna() {
         await anonClient.auth.signOut();
 
         const { data: tokenRow, error: tokenErr } = await anonClient
-          .from("supplier_assessment_tokens")
-          .select("id, supplier_id, supplier_name, expires_at, completed_at")
-          .eq("token", token)
+          .rpc("get_supplier_assessment_token", { _token: token })
           .maybeSingle();
-
-        console.log("Token query result:", { tokenRow, tokenErr });
 
         if (tokenErr) {
           console.error("Token query error:", tokenErr);
@@ -93,26 +89,15 @@ export default function AvaliacaoExterna() {
           return;
         }
 
-        if (tokenRow.completed_at) {
-          setError("Esta avaliação já foi preenchida.");
-          setLoading(false);
-          return;
-        }
-
-        if (new Date(tokenRow.expires_at) < new Date()) {
-          setError("Este link de avaliação expirou.");
-          setLoading(false);
-          return;
-        }
-
-        setTokenData(tokenRow as TokenData);
-        setSupplierName(tokenRow.supplier_name || "Fornecedor");
+        const tokenTyped = tokenRow as unknown as TokenData;
+        setTokenData(tokenTyped);
+        setSupplierName(tokenTyped.supplier_name || "Fornecedor");
 
         // Try to get supplier name from suppliers table
         const { data: sup } = await anonClient
           .from("suppliers")
           .select("name, category")
-          .eq("id", tokenRow.supplier_id)
+          .eq("id", tokenTyped.supplier_id)
           .single();
 
         if (sup) setSupplierName(sup.name);
@@ -179,11 +164,9 @@ export default function AvaliacaoExterna() {
 
       if (updateErr) console.error("Supplier update error:", updateErr);
 
-      // Mark token as completed
+      // Mark token as completed via security-definer RPC
       const { error: tokenUpdateErr } = await anonClient
-        .from("supplier_assessment_tokens")
-        .update({ completed_at: new Date().toISOString() })
-        .eq("id", tokenData.id);
+        .rpc("complete_supplier_assessment_token", { _token: token! });
 
       if (tokenUpdateErr) console.error("Token update error:", tokenUpdateErr);
 
