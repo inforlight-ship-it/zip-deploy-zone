@@ -827,7 +827,15 @@ export default function Mapeamento() {
                 <div>
                   <Label>Categorias de Dados Sensíveis</Label>
                   <div className="mt-1">
-                    <TagInput values={form.sensitive_data_types} onChange={(v) => updateField("sensitive_data_types", v)} suggestions={SENSITIVE_DATA_TYPES} placeholder="Selecione categorias..." />
+                    <TagInput
+                      values={form.sensitive_data_types}
+                      onChange={(v) => updateField("sensitive_data_types", v)}
+                      suggestions={[...SENSITIVE_DATA_TYPES, ...customSensitive]}
+                      placeholder="Selecione categorias..."
+                      onPersistNew={(t) => persistOption(t, "sensitive")}
+                      customOptions={customSensitive}
+                      onDeleteCustom={(t) => deleteOption(t, "sensitive")}
+                    />
                   </div>
                 </div>
               )}
