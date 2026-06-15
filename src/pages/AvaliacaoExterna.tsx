@@ -89,14 +89,15 @@ export default function AvaliacaoExterna() {
           return;
         }
 
-        setTokenData(tokenRow as TokenData);
-        setSupplierName(tokenRow.supplier_name || "Fornecedor");
+        const tokenTyped = tokenRow as unknown as TokenData;
+        setTokenData(tokenTyped);
+        setSupplierName(tokenTyped.supplier_name || "Fornecedor");
 
         // Try to get supplier name from suppliers table
         const { data: sup } = await anonClient
           .from("suppliers")
           .select("name, category")
-          .eq("id", tokenRow.supplier_id)
+          .eq("id", tokenTyped.supplier_id)
           .single();
 
         if (sup) setSupplierName(sup.name);
