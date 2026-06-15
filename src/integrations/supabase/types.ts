@@ -1643,6 +1643,44 @@ export type Database = {
           },
         ]
       }
+      tenant_data_type_options: {
+        Row: {
+          category: string
+          created_at: string
+          created_by: string | null
+          id: string
+          label: string
+          tenant_id: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          label: string
+          tenant_id: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          label?: string
+          tenant_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tenant_data_type_options_tenant_id_fkey"
+            columns: ["tenant_id"]
+            isOneToOne: false
+            referencedRelation: "tenants"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       tenant_modules: {
         Row: {
           config: Json | null

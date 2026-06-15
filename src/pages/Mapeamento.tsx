@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import {
   Plus,
   Search,
@@ -13,6 +13,7 @@ import {
   ShieldOff,
   X,
   ChevronDown,
+  Settings2,
 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -178,22 +179,44 @@ function riskIcon(level: string) {
   }
 }
 
-function TagInput({ values, onChange, suggestions, placeholder }: {
+function TagInput({
+  values,
+  onChange,
+  suggestions,
+  placeholder,
+  onPersistNew,
+  customOptions,
+  onDeleteCustom,
+}: {
   values: string[];
   onChange: (v: string[]) => void;
   suggestions: string[];
   placeholder: string;
+  onPersistNew?: (tag: string) => Promise<void> | void;
+  customOptions?: string[];
+  onDeleteCustom?: (tag: string) => Promise<void> | void;
 }) {
   const [input, setInput] = useState("");
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [manageOpen, setManageOpen] = useState(false);
 
   const filtered = suggestions.filter(
     (s) => !values.includes(s) && s.toLowerCase().includes(input.toLowerCase())
   );
 
-  const addTag = (tag: string) => {
-    if (tag.trim() && !values.includes(tag.trim())) {
-      onChange([...values, tag.trim()]);
+  const addTag = async (tag: string) => {
+    const clean = tag.trim();
+    if (!clean) {
+      setInput("");
+      setShowSuggestions(false);
+      return;
+    }
+    if (!values.includes(clean)) {
+      onChange([...values, clean]);
+    }
+    // Persist as reusable option if it is brand new
+    if (onPersistNew && !suggestions.includes(clean)) {
+      try { await onPersistNew(clean); } catch { /* no-op */ }
     }
     setInput("");
     setShowSuggestions(false);
@@ -218,17 +241,35 @@ function TagInput({ values, onChange, suggestions, placeholder }: {
           onFocus={() => setShowSuggestions(true)}
           onBlur={() => setTimeout(() => setShowSuggestions(false), 200)}
           onKeyDown={(e) => {
-            if (e.key === "Enter") { e.preventDefault(); addTag(input); }
+            if (e.key === "Enter" || e.key === ",") { e.preventDefault(); addTag(input); }
           }}
-          placeholder={values.length === 0 ? placeholder : ""}
-          className="flex-1 min-w-[120px] bg-transparent text-sm outline-none placeholder:text-muted-foreground"
+          placeholder={values.length === 0 ? placeholder : "Digite e pressione Enter para adicionar..."}
+          className="flex-1 min-w-[160px] bg-transparent text-sm outline-none placeholder:text-muted-foreground"
         />
       </div>
+
+      {/* Helper row: add button + manage */}
+      <div className="mt-1 flex items-center justify-between gap-2">
+        <p className="text-[11px] text-muted-foreground">
+          Pressione <kbd className="rounded border bg-muted px-1">Enter</kbd> ou vírgula para adicionar. Novos tipos ficam salvos para reutilização.
+        </p>
+        {onDeleteCustom && customOptions && customOptions.length > 0 && (
+          <button
+            type="button"
+            onClick={() => setManageOpen((v) => !v)}
+            className="inline-flex items-center gap-1 text-[11px] text-muted-foreground hover:text-foreground"
+          >
+            <Settings2 className="h-3 w-3" /> Gerenciar ({customOptions.length})
+          </button>
+        )}
+      </div>
+
       {showSuggestions && filtered.length > 0 && (
         <div className="absolute z-50 mt-1 max-h-40 w-full overflow-auto rounded-lg border border-border bg-popover p-1 shadow-elevated">
-          {filtered.slice(0, 8).map((s) => (
+          {filtered.slice(0, 10).map((s) => (
             <button
               key={s}
+              type="button"
               onMouseDown={(e) => e.preventDefault()}
               onClick={() => addTag(s)}
               className="w-full rounded-md px-3 py-1.5 text-left text-sm hover:bg-accent"
@@ -236,6 +277,32 @@ function TagInput({ values, onChange, suggestions, placeholder }: {
               {s}
             </button>
           ))}
+        </div>
+      )}
+
+      {manageOpen && onDeleteCustom && customOptions && (
+        <div className="mt-2 rounded-lg border border-border bg-card p-3">
+          <div className="mb-2 flex items-center justify-between">
+            <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Tipos personalizados salvos</p>
+            <button type="button" onClick={() => setManageOpen(false)} className="text-muted-foreground hover:text-foreground">
+              <X className="h-3.5 w-3.5" />
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-1.5">
+            {customOptions.map((c) => (
+              <span key={c} className="inline-flex items-center gap-1 rounded-md border border-border bg-background px-2 py-0.5 text-xs">
+                {c}
+                <button
+                  type="button"
+                  onClick={() => onDeleteCustom(c)}
+                  className="text-muted-foreground hover:text-destructive"
+                  title="Remover da biblioteca"
+                >
+                  <X className="h-3 w-3" />
+                </button>
+              </span>
+            ))}
+          </div>
         </div>
       )}
     </div>
@@ -258,6 +325,63 @@ export default function Mapeamento() {
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterRisk, setFilterRisk] = useState("all");
+  const [tenantId, setTenantId] = useState<string | null>(null);
+  const [customNormal, setCustomNormal] = useState<string[]>([]);
+  const [customSensitive, setCustomSensitive] = useState<string[]>([]);
+
+  const fetchTenantAndOptions = useCallback(async () => {
+    if (!user) return;
+    const { data: profile } = await supabase
+      .from("profiles").select("tenant_id").eq("user_id", user.id).maybeSingle();
+    const tId = profile?.tenant_id ?? null;
+    setTenantId(tId);
+    if (!tId) return;
+    const { data } = await supabase
+      .from("tenant_data_type_options")
+      .select("label, category")
+      .eq("tenant_id", tId)
+      .order("label", { ascending: true });
+    if (data) {
+      setCustomNormal(data.filter((d: any) => d.category === "normal").map((d: any) => d.label));
+      setCustomSensitive(data.filter((d: any) => d.category === "sensitive").map((d: any) => d.label));
+    }
+  }, [user]);
+
+  useEffect(() => { fetchTenantAndOptions(); }, [fetchTenantAndOptions]);
+
+  const persistOption = async (label: string, category: "normal" | "sensitive") => {
+    if (!tenantId) return;
+    const clean = label.trim();
+    if (!clean) return;
+    const list = category === "normal" ? customNormal : customSensitive;
+    if (list.includes(clean)) return;
+    const { error } = await supabase
+      .from("tenant_data_type_options")
+      .insert({ tenant_id: tenantId, label: clean, category, created_by: user?.id ?? null });
+    if (!error) {
+      if (category === "normal") setCustomNormal((p) => [...p, clean].sort());
+      else setCustomSensitive((p) => [...p, clean].sort());
+    } else if (!error.message.includes("duplicate")) {
+      toast({ title: "Não foi possível salvar o tipo", description: error.message, variant: "destructive" });
+    }
+  };
+
+  const deleteOption = async (label: string, category: "normal" | "sensitive") => {
+    if (!tenantId) return;
+    const { error } = await supabase
+      .from("tenant_data_type_options")
+      .delete()
+      .eq("tenant_id", tenantId)
+      .eq("category", category)
+      .eq("label", label);
+    if (!error) {
+      if (category === "normal") setCustomNormal((p) => p.filter((x) => x !== label));
+      else setCustomSensitive((p) => p.filter((x) => x !== label));
+      toast({ title: "Tipo removido da biblioteca" });
+    } else {
+      toast({ title: "Erro ao remover", description: error.message, variant: "destructive" });
+    }
+  };
 
   const fetchActivities = async () => {
     if (!user) return;
@@ -681,7 +805,15 @@ export default function Mapeamento() {
               <div>
                 <Label>Tipos de Dados Coletados *</Label>
                 <div className="mt-1">
-                  <TagInput values={form.data_types} onChange={(v) => updateField("data_types", v)} suggestions={DATA_TYPES_SUGGESTIONS} placeholder="Adicione tipos de dados..." />
+                  <TagInput
+                    values={form.data_types}
+                    onChange={(v) => updateField("data_types", v)}
+                    suggestions={[...DATA_TYPES_SUGGESTIONS, ...customNormal]}
+                    placeholder="Adicione tipos de dados..."
+                    onPersistNew={(t) => persistOption(t, "normal")}
+                    customOptions={customNormal}
+                    onDeleteCustom={(t) => deleteOption(t, "normal")}
+                  />
                 </div>
               </div>
               <div className="flex items-center gap-3 rounded-lg border border-border p-4">
@@ -695,7 +827,15 @@ export default function Mapeamento() {
                 <div>
                   <Label>Categorias de Dados Sensíveis</Label>
                   <div className="mt-1">
-                    <TagInput values={form.sensitive_data_types} onChange={(v) => updateField("sensitive_data_types", v)} suggestions={SENSITIVE_DATA_TYPES} placeholder="Selecione categorias..." />
+                    <TagInput
+                      values={form.sensitive_data_types}
+                      onChange={(v) => updateField("sensitive_data_types", v)}
+                      suggestions={[...SENSITIVE_DATA_TYPES, ...customSensitive]}
+                      placeholder="Selecione categorias..."
+                      onPersistNew={(t) => persistOption(t, "sensitive")}
+                      customOptions={customSensitive}
+                      onDeleteCustom={(t) => deleteOption(t, "sensitive")}
+                    />
                   </div>
                 </div>
               )}
