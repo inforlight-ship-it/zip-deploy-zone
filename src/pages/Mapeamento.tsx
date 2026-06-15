@@ -325,10 +325,63 @@ export default function Mapeamento() {
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [filterRisk, setFilterRisk] = useState("all");
+  const [tenantId, setTenantId] = useState<string | null>(null);
+  const [customNormal, setCustomNormal] = useState<string[]>([]);
+  const [customSensitive, setCustomSensitive] = useState<string[]>([]);
 
-  const fetchActivities = async () => {
+  const fetchTenantAndOptions = useCallback(async () => {
     if (!user) return;
-    setLoading(true);
+    const { data: profile } = await supabase
+      .from("profiles").select("tenant_id").eq("user_id", user.id).maybeSingle();
+    const tId = profile?.tenant_id ?? null;
+    setTenantId(tId);
+    if (!tId) return;
+    const { data } = await supabase
+      .from("tenant_data_type_options")
+      .select("label, category")
+      .eq("tenant_id", tId)
+      .order("label", { ascending: true });
+    if (data) {
+      setCustomNormal(data.filter((d: any) => d.category === "normal").map((d: any) => d.label));
+      setCustomSensitive(data.filter((d: any) => d.category === "sensitive").map((d: any) => d.label));
+    }
+  }, [user]);
+
+  useEffect(() => { fetchTenantAndOptions(); }, [fetchTenantAndOptions]);
+
+  const persistOption = async (label: string, category: "normal" | "sensitive") => {
+    if (!tenantId) return;
+    const clean = label.trim();
+    if (!clean) return;
+    const list = category === "normal" ? customNormal : customSensitive;
+    if (list.includes(clean)) return;
+    const { error } = await supabase
+      .from("tenant_data_type_options")
+      .insert({ tenant_id: tenantId, label: clean, category, created_by: user?.id ?? null });
+    if (!error) {
+      if (category === "normal") setCustomNormal((p) => [...p, clean].sort());
+      else setCustomSensitive((p) => [...p, clean].sort());
+    } else if (!error.message.includes("duplicate")) {
+      toast({ title: "Não foi possível salvar o tipo", description: error.message, variant: "destructive" });
+    }
+  };
+
+  const deleteOption = async (label: string, category: "normal" | "sensitive") => {
+    if (!tenantId) return;
+    const { error } = await supabase
+      .from("tenant_data_type_options")
+      .delete()
+      .eq("tenant_id", tenantId)
+      .eq("category", category)
+      .eq("label", label);
+    if (!error) {
+      if (category === "normal") setCustomNormal((p) => p.filter((x) => x !== label));
+      else setCustomSensitive((p) => p.filter((x) => x !== label));
+      toast({ title: "Tipo removido da biblioteca" });
+    } else {
+      toast({ title: "Erro ao remover", description: error.message, variant: "destructive" });
+    }
+  };
     const { data, error } = await supabase
       .from("processing_activities")
       .select("*")
