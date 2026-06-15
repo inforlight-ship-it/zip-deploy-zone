@@ -164,11 +164,9 @@ export default function AvaliacaoExterna() {
 
       if (updateErr) console.error("Supplier update error:", updateErr);
 
-      // Mark token as completed
+      // Mark token as completed via security-definer RPC
       const { error: tokenUpdateErr } = await anonClient
-        .from("supplier_assessment_tokens")
-        .update({ completed_at: new Date().toISOString() })
-        .eq("id", tokenData.id);
+        .rpc("complete_supplier_assessment_token", { _token: token! });
 
       if (tokenUpdateErr) console.error("Token update error:", tokenUpdateErr);
 
