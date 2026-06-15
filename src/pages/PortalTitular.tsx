@@ -79,14 +79,11 @@ export default function PortalTitular() {
     if (!slug) return;
     setTenantLoading(true);
     supabase
-      .from("tenants")
-      .select("id, name")
-      .eq("slug", slug)
-      .eq("is_active", true)
+      .rpc("get_tenant_by_slug", { _slug: slug })
       .maybeSingle()
       .then(({ data }) => {
         if (data) {
-          setTenant(data);
+          setTenant(data as { id: string; name: string });
         } else {
           setTenantNotFound(true);
         }
