@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Building2, Plus, Search, CheckCircle2, XCircle } from "lucide-react";
+import { Building2, Plus, Search, CheckCircle2, XCircle, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -8,10 +8,24 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import CreateTenantDialog from "@/components/admin/CreateTenantDialog";
 import TenantActionsMenu from "@/components/admin/TenantActionsMenu";
+import { useAuth } from "@/contexts/AuthContext";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 
 const TenantsListPage = () => {
   const [search, setSearch] = useState("");
   const [showCreate, setShowCreate] = useState(false);
+  const { impersonateUser } = useAuth();
+  const navigate = useNavigate();
+
+  const handleAccessTenant = async (tenant: any) => {
+    try {
+      await impersonateUser(null, tenant.id, `Acesso direto do Super Admin ao tenant ${tenant.name}`);
+      navigate("/dashboard");
+    } catch (e: any) {
+      toast.error("Falha ao acessar tenant: " + (e?.message || "erro"));
+    }
+  };
 
   const { data: tenants = [] } = useQuery({
     queryKey: ["admin-tenants"],
@@ -62,12 +76,19 @@ const TenantsListPage = () => {
               {filtered.map((tenant: any) => (
                 <tr key={tenant.id} className="hover:bg-secondary/30 transition-colors">
                   <td className="px-4 py-3">
-                    <div className="flex items-center gap-2.5">
+                    <button
+                      onClick={() => handleAccessTenant(tenant)}
+                      className="flex items-center gap-2.5 group text-left"
+                      title={`Acessar painel de ${tenant.name}`}
+                    >
                       <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded bg-primary">
                         <Building2 className="h-4 w-4 text-primary-foreground" />
                       </div>
-                      <span className="font-medium text-card-foreground">{tenant.name}</span>
-                    </div>
+                      <span className="font-medium text-card-foreground group-hover:text-primary group-hover:underline transition-colors">
+                        {tenant.name}
+                      </span>
+                      <ExternalLink className="h-3 w-3 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+                    </button>
                   </td>
                   <td className="px-4 py-3 text-muted-foreground font-mono text-xs">{tenant.slug}</td>
                   <td className="px-4 py-3">
